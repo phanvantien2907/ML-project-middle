@@ -4,7 +4,6 @@ import pandas as pd
 import math
 import seaborn as sns
 from sklearn import datasets, linear_model
-from sklearn.linear_model import ridge_regression, Ridge
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -23,9 +22,6 @@ X =read_data[[
 ]]
 
 Y = read_data["Y house price of unit area"]
-
-
-
 X_train, X_test, Y_train, Y_test = train_test_split(
     X,Y, test_size=0.2, random_state=42
 )
@@ -39,12 +35,6 @@ regr.fit(X_train_scaler, Y_train)
 print("[w1,.., w_n] =", regr.coef_)
 print("[w0 = ]", regr.intercept_)
 
-ridge = linear_model.Ridge(alpha=0.1)
-ridge.fit(X_train_scaler, Y_train)
-print("[w1,.., w_n] =", ridge.coef_)
-print("[w0 = ]", ridge.intercept_)
-
-
 print("Giá trị đúng", Y_test.iloc[0])
 
 y_pred_linear = regr.predict(X_test_scaler[0:1])
@@ -52,34 +42,18 @@ print("Giá trị dự đoán mô hình linear là: ", y_pred_linear)
 y_pred_linear_0 = sum(regr.coef_*X_test_scaler[0])+regr.intercept_
 print("Giá trị dự đoán mô hình linear theo công thức là: ", y_pred_linear_0)
 
-y_pred_ridge = ridge.predict(X_test_scaler[0:1])
-print("Giá trị dự đoán mô hình ridge là: ", y_pred_ridge)
-y_pred_ridge_0 = sum(ridge.coef_*X_test_scaler[0])+ridge.intercept_
-print("Giá trị dự đoán mô hình ridge theo công thức là: ", y_pred_ridge_0)
-
-
 Y_pred_linear = regr.predict(X_test_scaler)
-Y_pred_ridge = ridge.predict(X_test_scaler)
 log_data = pd.DataFrame({
     "Thực tế": Y_test.values,
     "Linear": Y_pred_linear,
-    "Ridge": Y_pred_ridge,
     "Lệch Linear": abs(Y_test.values - Y_pred_linear),
-    "Lệch Ridge": abs(Y_test.values - Y_pred_ridge)
 })
 print(log_data)
-
 
 mse_linear_model = mean_squared_error(Y_test, Y_pred_linear)
 print("Giá trị MSE của mô hình Linear: ", mse_linear_model)
 rmse_linear_model = math.sqrt(mean_squared_error(Y_test, Y_pred_linear))
 print("Giá trị RMSE của mô hình Linear: ", rmse_linear_model)
-
-mse_ridge_model = mean_squared_error(Y_test, Y_pred_ridge)
-print("Giá trị MSE của mô hình Ridge: ", mse_ridge_model)
-rmse_ridge_model = math.sqrt(mean_squared_error(Y_test, Y_pred_ridge))
-print("Giá trị RMSE của mô hình Ridge: ", rmse_ridge_model)
-
 
 draw_values_real_life = sns.histplot(Y_test, kde=True)
 render_values_real_life = pd.DataFrame(data=Y_test.values, columns=["values real life"]).describe()
@@ -88,22 +62,21 @@ print(render_values_real_life)
 draw_values_linear = sns.histplot(Y_pred_linear, kde=True)
 render_value_linear = pd.DataFrame(data=Y_pred_linear, columns=["values of linear"]).describe()
 print(render_value_linear)
+plt.savefig("../results/linear_distribution.png", dpi=150)
+plt.show()
 
-draw_values_ridge = sns.histplot(Y_pred_ridge, kde=True)
-render_value_ridge = pd.DataFrame(data=Y_pred_ridge, columns=["values of ridge"]).describe()
-print(render_value_ridge)
-
-print(f"Độ chính xác của mô hình (R2 Score): {r2_score(Y_test, Y_pred_ridge)*100:.2f}%")
+print(f"Độ chính xác của mô hình (R2 Score): {r2_score(Y_test, Y_pred_linear)*100:.2f}%")
 
 plt.figure(figsize=(6, 6))
-plt.scatter(Y_test, Y_pred_linear, label="Linear")
-plt.scatter(Y_test, Y_pred_ridge, label="Ridge")
+plt.scatter(Y_test, Y_pred_linear, label="Linear", color="royalblue")
 plt.plot(
     [Y_test.min(), Y_test.max()],
-    [Y_test.min(), Y_test.max()]
+    [Y_test.min(), Y_test.max()],
+    "k--", linewidth=1.5, label="Lý tưởng (y=x)"
 )
 plt.xlabel("Thực tế")
 plt.ylabel("Dự đoán")
-plt.title("So sánh dự đoán: Linear vs Ridge")
+plt.title("Dự đoán: Linear Regression")
 plt.legend()
+plt.savefig("../results/linear_sklearn_scatter.png", dpi=150)
 plt.show()
